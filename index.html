@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh_cn">
+
+<head>
+	<link rel="icon" type="image/x-icon" href="favicon.ico" />
+	<meta charset="utf-8">
+	<title>古老软件</title>
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
+	<meta name="keywords" content="">
+	<meta name="description" content="你是否想要下载各种古老软件？那就来这里">
+	<!-- Google Fonts -->
+	<link href="css2.css" rel="stylesheet">
+	<!-- Favicon -->
+	
+	<!-- Site All Style Sheet Css -->
+	<link href="bootstrap.min.css" rel="stylesheet">
+	<link href="font-awesome.min.css" rel="stylesheet">
+	<link href="themify-icons.css" rel="stylesheet">
+	<link href="magnific-popup.css" rel="stylesheet">
+	<link href="animate.min.css" rel="stylesheet">
+	<link href="owl.carousel.min.css" rel="stylesheet">
+	<link href="owl.theme.default.min.css" rel="stylesheet">
+	<!-- Site Main Style Sheet Css -->
+	<link href="style.css" rel="stylesheet">
+	<link href="responsive.css" rel="stylesheet">
+</head>
+
+<body>
+	<script>
+		function clickEffect() {
+		  let balls = [];
+		  let longPressed = false;
+		  let longPress;
+		  let multiplier = 0;
+		  let width, height;
+		  let origin;
+		  let normal;
+		  let ctx;
+		  const colours = ["#F73859", "#14FFEC", "#00E0FF", "#FF99FE", "#FAF15D"];
+		  const canvas = document.createElement("canvas");
+		  document.body.appendChild(canvas);
+		  canvas.setAttribute("style", "width: 100%; height: 100%; top: 0; left: 0; z-index: 99999; position: fixed; pointer-events: none;");
+		  const pointer = document.createElement("span");
+		  pointer.classList.add("pointer");
+		  document.body.appendChild(pointer);
+		 
+		  if (canvas.getContext && window.addEventListener) {
+			ctx = canvas.getContext("2d");
+			updateSize();
+			window.addEventListener('resize', updateSize, false);
+			loop();
+			window.addEventListener("mousedown", function(e) {
+			  pushBalls(randBetween(10, 20), e.clientX, e.clientY);
+			  document.body.classList.add("is-pressed");
+			  longPress = setTimeout(function(){
+				document.body.classList.add("is-longpress");
+				longPressed = true;
+			  }, 500);
+			}, false);
+			window.addEventListener("mouseup", function(e) {
+			  clearInterval(longPress);
+			  if (longPressed == true) {
+				document.body.classList.remove("is-longpress");
+				pushBalls(randBetween(50 + Math.ceil(multiplier), 100 + Math.ceil(multiplier)), e.clientX, e.clientY);
+				longPressed = false;
+			  }
+			  document.body.classList.remove("is-pressed");
+			}, false);
+			window.addEventListener("mousemove", function(e) {
+			  let x = e.clientX;
+			  let y = e.clientY;
+			  pointer.style.top = y + "px";
+			  pointer.style.left = x + "px";
+			}, false);
+		  } else {
+			console.log("canvas or addEventListener is unsupported!");
+		  }
+		 
+		 
+		  function updateSize() {
+			canvas.width = window.innerWidth * 2;
+			canvas.height = window.innerHeight * 2;
+			canvas.style.width = window.innerWidth + 'px';
+			canvas.style.height = window.innerHeight + 'px';
+			ctx.scale(2, 2);
+			width = (canvas.width = window.innerWidth);
+			height = (canvas.height = window.innerHeight);
+			origin = {
+			  x: width / 2,
+			  y: height / 2
+			};
+			normal = {
+			  x: width / 2,
+			  y: height / 2
+			};
+		  }
+		  class Ball {
+			constructor(x = origin.x, y = origin.y) {
+			  this.x = x;
+			  this.y = y;
+			  this.angle = Math.PI * 2 * Math.random();
+			  if (longPressed == true) {
+				this.multiplier = randBetween(14 + multiplier, 15 + multiplier);
+			  } else {
+				this.multiplier = randBetween(6, 12);
+			  }
+			  this.vx = (this.multiplier + Math.random() * 0.5) * Math.cos(this.angle);
+			  this.vy = (this.multiplier + Math.random() * 0.5) * Math.sin(this.angle);
+			  this.r = randBetween(8, 12) + 3 * Math.random();
+			  this.color = colours[Math.floor(Math.random() * colours.length)];
+			}
+			update() {
+			  this.x += this.vx - normal.x;
+			  this.y += this.vy - normal.y;
+			  normal.x = -2 / window.innerWidth * Math.sin(this.angle);
+			  normal.y = -2 / window.innerHeight * Math.cos(this.angle);
+			  this.r -= 0.3;
+			  this.vx *= 0.9;
+			  this.vy *= 0.9;
+			}
+		  }
+		 
+		  function pushBalls(count = 1, x = origin.x, y = origin.y) {
+			for (let i = 0; i < count; i++) {
+			  balls.push(new Ball(x, y));
+			}
+		  }
+		 
+		  function randBetween(min, max) {
+			return Math.floor(Math.random() * max) + min;
+		  }
+		 
+		  function loop() {
+			ctx.fillStyle = "rgba(255, 255, 255, 0)";
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			for (let i = 0; i < balls.length; i++) {
+			  let b = balls[i];
+			  if (b.r < 0) continue;
+			  ctx.fillStyle = b.color;
+			  ctx.beginPath();
+			  ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2, false);
+			  ctx.fill();
+			  b.update();
+			}
+			if (longPressed == true) {
+			  multiplier += 0.2;
+			} else if (!longPressed && multiplier >= 0) {
+			  multiplier -= 0.4;
+			}
+			removeBall();
+			requestAnimationFrame(loop);
+		  }
+		 
+		  function removeBall() {
+			for (let i = 0; i < balls.length; i++) {
+			  let b = balls[i];
+			  if (b.x + b.r < 0 || b.x - b.r > width || b.y + b.r < 0 || b.y - b.r > height || b.r < 0) {
+				balls.splice(i, 1);
+			  }
+			}
+		  }
+		}
+		clickEffect();//调用特效函数
+		</script>
+	<!-- Start Preloader Area -->
+	<div class="preloader">
+		<div class="preloader-inner">
+			<span></span>
+			<span></span>
+		</div>
+	</div>
+	<!-- End Preloader Area -->
+    <!-- Start Header Navbar Area -->
+    <header class="header-navber-area">
+        <div class="nav-top-bar">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6">
+                        <div class="call-to-action">
+                            <p><i class="icofont-envelope"></i> 邮箱: <a href="mailto:ioldsoftware@outlook.com">ioldsoftware@outlook.com</a></p>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+						<ul class="top-social">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar navbar-b navbar-trans navbar-expand-lg" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand js-scroll" href="">
+				<img src="logo.png" class="white-logo" alt="logo">
+			</a>
+            <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarDefault" aria-controls="navbarDefault" aria-expanded="false" aria-label="Toggle navigation">
+				<span></span>
+				<span></span>
+				<span></span> 
+			</button>
+                <div class="navbar-collapse collapse justify-content-end" id="navbarDefault">
+					<ul class="navbar-nav">
+						<li class="nav-item"><a class="nav-link js-scroll active" href="index.html">家</a></li>
+						<li class="nav-item"><a class="nav-link js-scroll" href="about.html">关于</a></li>
+						<li class="nav-item"><a class="nav-link js-scroll" href="download.html">下载</a></li>
+					</ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- End Header Navbar Area -->
+	
+	<!-- Start Home Section -->
+	<section id="home" class="home-area hero-equal-height section-padding">
+		<div class="container">
+			<div class="row align-items-center">
+				<div class="col-lg-8 offset-lg-2 col-md-12">
+					<div class="home-content z-index position-relative">
+						<h3>各种古老软件</h3>
+						<h1>你是否想要下载各种古老软件？那就来这里</h1>
+						<p>提供金山毒霸，瑞星杀毒，古老输入法等软件</p>
+						<div class="home-button-box">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<!-- End Home Section -->
+	<!-- Mini Feature Section Start -->
+	<section id="mini-feature" class="mini-feature-area bg-gray pt-70 pb-100">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-3 col-md-6 col-sm-12">
+					<div class="single-mini-feature">
+						<div class="mini-feature-icon">	<i class="ti-stats-up"></i>
+						</div>
+						<div class="mini-feature-info">
+							<h6>更快的下载速度</h6>
+							<p>下载不限速，让你体验飞一般的速度</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6 col-sm-12">
+					<div class="single-mini-feature">
+						<div class="mini-feature-icon">	<i class="ti-stats-up"></i>
+						</div>
+						<div class="mini-feature-info">
+							<h6>优质的服务</h6>
+							<p>如果你有更多古老软件或发现网站问题，欢迎咨询ioldsoftware@outlook.com</p>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6 col-sm-12">
+					<div class="single-mini-feature">
+						<div class="mini-feature-icon">	<i class="ti-stats-up"></i>
+						</div>
+						<div class="mini-feature-info">
+							<h6>海量的资源</h6>
+							<p>各种古老软件应有尽有</p>
+						</div>
+					</div>
+				</div>
+	
+	</section>
+
+
+
+	<script src="jquery-3.6.0.min.js"></script>
+	<script src="bootstrap.min.js"></script>
+	<script src="plugins.js"></script>
+	<!--Site Main Custom Js-->
+	<script src="main.js"></script>
+</body>
+
+</html>
